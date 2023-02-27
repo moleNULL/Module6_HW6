@@ -1,10 +1,6 @@
-using Catalog.Host;
-using Catalog.Host.Configurations;
-using Catalog.Host.Data;
-using Catalog.Host.Repositories;
-using Catalog.Host.Repositories.Interfaces;
-using Catalog.Host.Services;
-using Catalog.Host.Services.Interfaces;
+using Basket.Host.Configurations;
+using Basket.Host.Services;
+using Basket.Host.Services.Interfaces;
 using Infrastructure.Extensions;
 using Infrastructure.Filters;
 using Microsoft.OpenApi.Models;
@@ -23,9 +19,9 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "eShop- Catalog HTTP API",
+        Title = "eShop - Basket HTTP API",
         Version = "v1",
-        Description = "The Catalog Service HTTP API"
+        Description = "The Basket Service HTTP API"
     });
 
     var authority = configuration["Authorization:Authority"];
@@ -41,8 +37,6 @@ builder.Services.AddSwaggerGen(options =>
                 Scopes = new Dictionary<string, string>()
                 {
                     { "mvc", "website" },
-                    { "catalog.catalogbff", "catalog.catalogbff" },
-                    { "catalog.catalogitem", "catalog.catalogitem" }
                 }
             }
         }
@@ -52,18 +46,15 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.AddConfiguration();
-builder.Services.Configure<CatalogConfig>(configuration);
+builder.Services.Configure<RedisConfig>(
+    builder.Configuration.GetSection("Redis"));
 
 builder.Services.AddAuthorization(configuration);
 
-builder.Services.AddAutoMapper(typeof(Program));
-
-builder.Services.AddTransient<ICatalogItemRepository, CatalogItemRepository>();
-builder.Services.AddTransient<ICatalogService, CatalogService>();
-builder.Services.AddTransient<ICatalogItemService, CatalogItemService>();
-
-builder.Services.AddDbContextFactory<ApplicationDbContext>(opts => opts.UseNpgsql(configuration["ConnectionString"]));
-builder.Services.AddScoped<IDbContextWrapper<ApplicationDbContext>, DbContextWrapper<ApplicationDbContext>>();
+builder.Services.AddTransient<IJsonSerializer, JsonSerializer>();
+builder.Services.AddTransient<IRedisCacheConnectionService, RedisCacheConnectionService>();
+builder.Services.AddTransient<ICacheService, CacheService>();
+builder.Services.AddTransient<IBasketService, BasketService>();
 
 builder.Services.AddCors(options =>
 {
@@ -81,9 +72,9 @@ var app = builder.Build();
 app.UseSwagger()
     .UseSwaggerUI(setup =>
     {
-        setup.SwaggerEndpoint($"{configuration["PathBase"]}/swagger/v1/swagger.json", "Catalog.API V1");
-        setup.OAuthClientId("catalogswaggerui");
-        setup.OAuthAppName("Catalog Swagger UI");
+        setup.SwaggerEndpoint($"{configuration["PathBase"]}/swagger/v1/swagger.json", "Basket.API V1");
+        setup.OAuthClientId("basketswaggerui");
+        setup.OAuthAppName("Basket Swagger UI");
     });
 
 app.UseRouting();
@@ -98,7 +89,6 @@ app.UseEndpoints(endpoints =>
     endpoints.MapControllers();
 });
 
-CreateDbIfNotExists(app);
 app.Run();
 
 IConfiguration GetConfiguration()
@@ -109,23 +99,4 @@ IConfiguration GetConfiguration()
         .AddEnvironmentVariables();
 
     return builder.Build();
-}
-
-void CreateDbIfNotExists(IHost host)
-{
-    using (var scope = host.Services.CreateScope())
-    {
-        var services = scope.ServiceProvider;
-        try
-        {
-            var context = services.GetRequiredService<ApplicationDbContext>();
-
-            DbInitializer.Initialize(context).Wait();
-        }
-        catch (Exception ex)
-        {
-            var logger = services.GetRequiredService<ILogger<Program>>();
-            logger.LogError(ex, "An error occurred creating the DB.");
-        }
-    }
 }
