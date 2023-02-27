@@ -1,23 +1,14 @@
-#!!!!!SETUP STEPS!!!!!
- Update host file on your PC 
-   like this instruction https://www.nublue.co.uk/guides/edit-hosts-file/#:~:text=In%20Windows%2010%20the%20hosts,%5CDrivers%5Cetc%5Chosts.
-   
-Need to path these lines
+# &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NIX Solutions Module #6 Homework #6
 
-    127.0.0.1 www.alevelwebsite.com
-    0.0.0.0 www.alevelwebsite.com
-    192.168.0.1 www.alevelwebsite.com
-
-#docker
-docker-compose build --no-cache
-
-docker-compose up
-
-#Add-Migration
-dotnet ef --startup-project Catalog/Catalog.Host migrations add InitialMigration --project Catalog/Catalog.Host
-
-#Update-Migration
-dotnet ef --startup-project Catalog/Catalog.Host database update InitialMigration --project Catalog/Catalog.Host
-
-#Remove-Migration
-dotnet ef --startup-project Catalog/Catalog.Host migrations remove --project Catalog/Catalog.Host -f
+                                                 Задача: 
+                           Extend project from Sample6 by adding new MSS (Basket)
+                    
+● Create client/resource/scope for him\
+● Add 1 controller BFF and 1 API (all controllers are defended)\
+● Create 1 method inside API controller:\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;● Should add new item to Catalog\
+● Create 2 test methods inside BFF controller:\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;● 1 Anonymous (log any test message)\
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;● 1 Defended (Should read coming "user id" and log it)\
+● MVC on start should call BFFs method from Basket MSS\
+● Add Swagger with Auth
